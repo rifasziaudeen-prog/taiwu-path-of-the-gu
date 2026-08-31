@@ -23,7 +23,10 @@ export default function ApertureModal() {
     );
   }
 
-  const isPeakStage = cultivator?.stage.toLowerCase().includes('peak') ?? false;
+  const isPeakStage = cultivator?.stage 
+    ? (cultivator.stage.toLowerCase().includes('peak') || cultivator.stage.toLowerCase() === 'peak stage' || cultivator.stage.toLowerCase() === 'peak')
+    : false;
+  console.log('Cultivator Stage:', cultivator?.stage, 'isPeakStage:', isPeakStage);
   const requiredEssence = cultivator ? Math.floor(cultivator.max_essence * 0.9) : 90;
   const canAffordAscension = cultivator ? cultivator.primeval_essence >= requiredEssence : false;
   const isFractured = cultivator?.aperture_status === 'Fractured';
@@ -151,8 +154,8 @@ export default function ApertureModal() {
             ⚡
           </div>
 
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
-            <div className="flex-1">
+          <div className="flex flex-col lg:flex-row justify-between items-center gap-6 relative z-10 w-full">
+            <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-xs uppercase tracking-[0.25em] text-[#c89b3c] font-sans font-bold">
                   ⚡ Peak Bottleneck Reached
@@ -193,7 +196,7 @@ export default function ApertureModal() {
             </div>
 
             {/* Breakthrough Action Button */}
-            <div className="flex flex-col items-center">
+            <div className="shrink-0 flex flex-col items-center">
               <button
                 onClick={handleAscend}
                 disabled={!canAffordAscension || isAscending}
