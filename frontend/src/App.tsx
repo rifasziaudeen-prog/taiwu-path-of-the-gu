@@ -4,10 +4,11 @@ import MapGrid from './components/map/MapGrid';
 import TaiwuHUD from './components/ui/TaiwuHUD';
 import ApertureModal from './components/aperture/ApertureModal';
 import CrucibleModal from './components/crucible/CrucibleModal';
+import AscensionChamber from './components/views/AscensionChamber';
 import CombatArena from './components/views/CombatArena';
 import { useCombatStore } from './hooks/useCombat';
 
-export type ActiveTab = 'World' | 'Aperture' | 'Refine';
+export type ActiveTab = 'World' | 'Aperture' | 'Refine' | 'Ascend';
 
 function App() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('World');
@@ -46,6 +47,14 @@ function App() {
 
       {/* Refine Modal */}
       {activeTab === 'Refine' && <CrucibleModal />}
+
+      {/* Closed Door Cultivation: Ascension Chamber */}
+      {activeTab === 'Ascend' && (
+        <AscensionChamber 
+          onClose={() => setActiveTab('World')} 
+          onAscendSuccess={() => setActiveTab('World')} 
+        />
+      )}
 
       {/* Persistent Taiwu HUD — hidden during active combat to avoid UI collision */}
       {!isCombatActive && (

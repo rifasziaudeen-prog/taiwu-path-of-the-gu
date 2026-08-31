@@ -3,9 +3,7 @@ import { useCultivatorStore } from '../../hooks/useCultivator';
 import GuVault from './GuVault';
 
 export default function ApertureModal() {
-  const { cultivator, guWorms, isLoading, fetchAperture, feedGu, ascend } = useCultivatorStore();
-  const [isAscending, setIsAscending] = useState(false);
-  const [ascendMsg, setAscendMsg] = useState<{ text: string; success: boolean } | null>(null);
+  const { cultivator, guWorms, isLoading, fetchAperture, feedGu } = useCultivatorStore();
   const [subTab, setSubTab] = useState<'vault' | 'overview'>('vault');
 
   useEffect(() => {
@@ -23,52 +21,7 @@ export default function ApertureModal() {
     );
   }
 
-  const isPeakStage = cultivator?.stage 
-    ? (cultivator.stage.toLowerCase().includes('peak') || cultivator.stage.toLowerCase() === 'peak stage' || cultivator.stage.toLowerCase() === 'peak')
-    : false;
-  console.log('Cultivator Stage:', cultivator?.stage, 'isPeakStage:', isPeakStage);
-  const requiredEssence = cultivator ? Math.floor(cultivator.max_essence * 0.9) : 90;
-  const canAffordAscension = cultivator ? cultivator.primeval_essence >= requiredEssence : false;
   const isFractured = cultivator?.aperture_status === 'Fractured';
-  
-  // Calculate success rate strictly by grade (Lore: A=90%, B=60%, C=30%, D=10%)
-  let successRate = 40;
-  if (cultivator?.aperture_grade) {
-    const grade = cultivator.aperture_grade.toUpperCase();
-    if (grade.includes('A')) successRate = 90;
-    else if (grade.includes('B')) successRate = 60;
-    else if (grade.includes('C')) successRate = 30;
-    else if (grade.includes('D')) successRate = 10;
-  }
-
-  const handleAscend = async () => {
-    setIsAscending(true);
-    setAscendMsg(null);
-    try {
-      const res = await ascend();
-      await fetchAperture();
-      if (res.success && res.wall_broken) {
-        setAscendMsg({ 
-          text: res.message || `🎉 BREAKTHROUGH ACHIEVED! Advanced to Rank ${cultivator ? cultivator.rank + 1 : 2} Initial Stage!`, 
-          success: true 
-        });
-      } else if (res.fractured) {
-        setAscendMsg({ 
-          text: res.message, 
-          success: false 
-        });
-      } else {
-        setAscendMsg({ 
-          text: res.message || '💥 The crystal wall resisted your essence onslaught! Breakthrough failed.', 
-          success: false 
-        });
-      }
-    } catch (err: any) {
-      setAscendMsg({ text: err.message || 'Ascension attempt failed.', success: false });
-    } finally {
-      setIsAscending(false);
-    }
-  };
 
   return (
     <div className="absolute inset-0 bg-[#12100d]/90 backdrop-blur-2xl z-40 pt-12 pb-64 px-8 overflow-y-auto font-serif flex flex-col items-center select-none">
@@ -145,87 +98,6 @@ export default function ApertureModal() {
           </button>
         </div>
       </div>
-
-      {/* Mortal Breakthrough Banner (Only at Peak Stage) */}
-      {isPeakStage && cultivator && (
-        <div className="w-full max-w-5xl mb-8 p-6 rounded-2xl bg-gradient-to-r from-[#171410] via-[#241a12] to-[#171410] border-2 border-[#c89b3c]/60 shadow-[0_0_40px_rgba(200,155,60,0.25)] animate-fade-in relative overflow-hidden">
-          
-          <div className="absolute top-0 right-0 p-3 opacity-10 text-6xl pointer-events-none select-none">
-            ⚡
-          </div>
-
-          <div className="flex flex-col lg:flex-row justify-between items-center gap-6 relative z-10 w-full">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-xs uppercase tracking-[0.25em] text-[#c89b3c] font-sans font-bold">
-                  ⚡ Peak Bottleneck Reached
-                </span>
-                <span className="text-[10px] bg-[#c89b3c]/20 border border-[#c89b3c] text-[#c89b3c] px-2 py-0.5 rounded font-sans uppercase font-bold">
-                  {cultivator.aperture_grade}
-                </span>
-              </div>
-              <h2 className="text-2xl text-[#d5cfc4] font-bold tracking-wider">
-                Batter Aperture Wall & Ascend to Rank {cultivator.rank + 1}
-              </h2>
-              <p className="text-xs text-[#8a8275] font-sans mt-1 leading-relaxed max-w-xl">
-                Mobilize your full primeval essence to violently batter against the crystal aperture wall. Mortals are strictly bounded by aptitude grade. 
-                <span className="text-[#c0392b] block mt-1">⚠️ Beware: Failure carries a 15% risk of Aperture Fracture, permanently crippling your maximum essence capacity by 5%.</span>
-              </p>
-
-              {/* Requirements & Odds Bar */}
-              <div className="flex flex-wrap gap-4 mt-3 font-sans text-xs">
-                <div className="bg-black/50 px-3 py-1.5 rounded-lg border border-[#2a2620]">
-                  <span className="text-[#8a8275] text-[10px] uppercase block">Essence Battered:</span>
-                  <span className={canAffordAscension ? 'text-[#3b4d3c] font-bold' : 'text-[#5c2424] font-bold'}>
-                    {requiredEssence}% Essence ({cultivator.primeval_essence}% Available)
-                  </span>
-                </div>
-                <div className="bg-black/50 px-3 py-1.5 rounded-lg border border-[#2a2620]">
-                  <span className="text-[#8a8275] text-[10px] uppercase block">Aptitude Success Odds:</span>
-                  <span className="text-[#c89b3c] font-bold">
-                    {successRate}% Breakthrough Chance
-                  </span>
-                </div>
-                <div className="bg-black/50 px-3 py-1.5 rounded-lg border border-[#5c2424]/40">
-                  <span className="text-[#8a8275] text-[10px] uppercase block">Fracture Risk:</span>
-                  <span className="text-[#c0392b] font-bold">
-                    15% on Failure (-5% Max Sea)
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Breakthrough Action Button */}
-            <div className="shrink-0 flex flex-col items-center">
-              <button
-                onClick={handleAscend}
-                disabled={!canAffordAscension || isAscending}
-                className={`py-4 px-8 rounded-2xl font-sans text-xs font-bold uppercase tracking-[0.2em] transition-all duration-300 shadow-2xl border
-                  ${canAffordAscension && !isAscending
-                    ? 'bg-gradient-to-r from-red-600 via-rose-700 to-red-900 text-white hover:brightness-125 hover:shadow-[0_0_35px_rgba(225,29,72,0.7)] border-red-500 cursor-pointer animate-pulse'
-                    : 'bg-[#1a1814] text-zinc-600 border-[#2a2620] cursor-not-allowed opacity-60'}
-                `}
-              >
-                {isAscending ? '💥 Battering Crystal Wall...' : '⚡ SHATTER APERTURE WALL'}
-              </button>
-              <span className={`text-[11px] font-sans mt-2 text-center font-semibold ${canAffordAscension ? 'text-red-400' : 'text-[#5c2424]'}`}>
-                {canAffordAscension ? '🔥 Consumes 90% Primeval Essence' : `⚠️ Requires at least ${requiredEssence}% Primeval Essence`}
-              </span>
-            </div>
-          </div>
-
-          {/* Feedback Message */}
-          {ascendMsg && (
-            <div className={`mt-4 p-3.5 rounded-lg border text-xs font-sans font-bold text-center animate-fade-in
-              ${ascendMsg.success 
-                ? 'bg-[#3b4d3c]/30 border-[#3b4d3c] text-emerald-300 shadow-[0_0_20px_rgba(59,77,60,0.3)]' 
-                : 'bg-[#5c2424]/40 border-red-500 text-red-300 shadow-[0_0_20px_rgba(92,36,36,0.5)]'}
-            `}>
-              {ascendMsg.text}
-            </div>
-          )}
-        </div>
-      )}
 
       {/* Main Content Area: Subtab View */}
       {subTab === 'vault' ? (
