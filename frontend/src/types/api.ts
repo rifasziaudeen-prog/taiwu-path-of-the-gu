@@ -104,3 +104,37 @@ export interface DeathPenaltyResponse {
   message: string;
   cultivator: CultivatorStats;
 }
+
+export interface VaultDataResponse {
+  status: string;
+  equipped_gu: GuWorm[];
+  vault_gu: GuWorm[];
+  vault_capacity: number;
+  max_active_slots: number;
+  equipped_active_count: number;
+  cultivator: CultivatorStats;
+}
+
+export interface EquipGuResponse {
+  success: boolean;
+  message: string;
+  gu?: GuWorm;
+  equipped_gu: GuWorm[];
+  vault_gu: GuWorm[];
+  vault_capacity: number;
+  max_active_slots: number;
+  equipped_active_count: number;
+  cultivator: CultivatorStats;
+}
+
+export interface UnequipGuResponse {
+  success: boolean;
+  message: string;
+  gu?: GuWorm;
+  equipped_gu: GuWorm[];
+  vault_gu: GuWorm[];
+  vault_capacity: number;
+  max_active_slots: number;
+  equipped_active_count: number;
+  cultivator: CultivatorStats;
+}

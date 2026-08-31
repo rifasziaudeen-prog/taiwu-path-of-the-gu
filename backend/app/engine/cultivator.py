@@ -108,6 +108,40 @@ class CultivatorState:
                 "essence_cost": 25
             }
         ]
+        
+        # Inactive Gu Vault Storage (Capacity = Rank * 5)
+        self.vault: List[Dict[str, Any]] = [
+            {
+                "id": "gu_little_light",
+                "name": "Little Light Gu",
+                "tier": 1,
+                "path": "Light Path",
+                "gu_type": "active",
+                "hunger": 60,
+                "food": "White Radiance Petals",
+                "effect_desc": "Emits flashes of blinding light to disorient enemies (Deals 25 Light damage). Costs 8% Essence.",
+                "passive_buff": None,
+                "active_power": 25,
+                "essence_cost": 8
+            },
+            {
+                "id": "gu_bear_strength",
+                "name": "Black Bear Gu",
+                "tier": 1,
+                "path": "Strength Path",
+                "gu_type": "passive_body",
+                "hunger": 80,
+                "food": "Bear Honey",
+                "effect_desc": "Infuses mortal sinews with the immense power of a black bear (+20 Strength). Passive while fed.",
+                "passive_buff": {
+                    "stat": "strength",
+                    "value": 20,
+                    "label": "1 Bear Strength"
+                },
+                "active_power": 0,
+                "essence_cost": 0
+            }
+        ]
 
     def get_stats(self) -> Dict[str, Any]:
         """
@@ -304,6 +338,116 @@ class CultivatorState:
             "lost_stones": lost_stones,
             "lost_gu": lost_gu_name,
             "message": f"💀 MORTAL COLLAPSE! You fell in battle. Teleported to origin [7,7]. Plundered {lost_stones} Primeval Stones." + (f" Your Gu '{lost_gu_name}' was destroyed!" if lost_gu_name else ""),
+            "cultivator": self.get_stats()
+        }
+
+    def get_vault_capacity(self) -> int:
+        """
+        Vault inactive storage capacity is determined by Rank:
+        Rank 1 = 5 slots, Rank 2 = 10 slots, Rank 3 = 15 slots, etc.
+        """
+        return max(5, self.rank * 5)
+
+    def get_equipped_active_count(self) -> int:
+        """
+        Returns number of active combat Gu currently equipped in the Aperture.
+        """
+        return len([g for g in self.aperture if g.get("gu_type") == "active"])
+
+    def equip_gu(self, gu_id: str) -> Dict[str, Any]:
+        """
+        Equips a Gu worm from Vault storage into the active Aperture.
+        Enforces maximum 3 active combat Gu at any time.
+        """
+        gu = next((g for g in self.vault if g["id"] == gu_id), None)
+        if not gu:
+            return {
+                "success": False,
+                "message": "Gu worm not found in Vault storage.",
+                "equipped_gu": self.aperture,
+                "vault_gu": self.vault,
+                "cultivator": self.get_stats()
+            }
+            
+        # Check active combat slot constraint (Max 3 active Gu)
+        if gu.get("gu_type") == "active":
+            if self.get_equipped_active_count() >= 3:
+                return {
+                    "success": False,
+                    "message": "Combat Aperture is full! You can only equip up to 3 Active Gu worms at once for battle.",
+                    "equipped_gu": self.aperture,
+                    "vault_gu": self.vault,
+                    "cultivator": self.get_stats()
+                }
+                
+        # Move from vault to aperture
+        self.vault.remove(gu)
+        self.aperture.append(gu)
+        
+        return {
+            "success": True,
+            "message": f"Equipped {gu['name']} into your Primeval Aperture.",
+            "gu": gu,
+            "equipped_gu": self.aperture,
+            "vault_gu": self.vault,
+            "vault_capacity": self.get_vault_capacity(),
+            "max_active_slots": 3,
+            "equipped_active_count": self.get_equipped_active_count(),
+            "cultivator": self.get_stats()
+        }
+
+    def unequip_gu(self, gu_id: str) -> Dict[str, Any]:
+        """
+        Unequips a Gu worm from active Aperture into Vault storage.
+        Enforces vault storage capacity limit.
+        """
+        gu = next((g for g in self.aperture if g["id"] == gu_id), None)
+        if not gu:
+            return {
+                "success": False,
+                "message": "Gu worm is not equipped in your Aperture.",
+                "equipped_gu": self.aperture,
+                "vault_gu": self.vault,
+                "cultivator": self.get_stats()
+            }
+            
+        # Check vault capacity limit
+        if len(self.vault) >= self.get_vault_capacity():
+            return {
+                "success": False,
+                "message": f"Vault is full! Maximum storage is {self.get_vault_capacity()} slots for Rank {self.rank}.",
+                "equipped_gu": self.aperture,
+                "vault_gu": self.vault,
+                "cultivator": self.get_stats()
+            }
+            
+        # Move from aperture to vault
+        self.aperture.remove(gu)
+        self.vault.append(gu)
+        
+        return {
+            "success": True,
+            "message": f"Unequipped {gu['name']} and moved into Vault storage.",
+            "gu": gu,
+            "equipped_gu": self.aperture,
+            "vault_gu": self.vault,
+            "vault_capacity": self.get_vault_capacity(),
+            "max_active_slots": 3,
+            "equipped_active_count": self.get_equipped_active_count(),
+            "cultivator": self.get_stats()
+        }
+
+    def get_vault_data(self) -> Dict[str, Any]:
+        """
+        Returns full vault and aperture equipment inventory state.
+        """
+        return {
+            "status": "success",
+            "equipped_gu": self.aperture,
+            "vault_gu": self.vault,
+            "vault_capacity": self.get_vault_capacity(),
+            "max_active_slots": 3,
+            "equipped_active_count": self.get_equipped_active_count(),
             "cultivator": self.get_stats()
         }
 
