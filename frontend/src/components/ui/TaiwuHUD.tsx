@@ -1,0 +1,112 @@
+import { useEffect } from 'react';
+import { useCultivatorStore } from '../../hooks/useCultivator';
+
+interface TaiwuHUDProps {
+  activeTab: 'World' | 'Aperture' | 'Refine';
+  setActiveTab: (tab: 'World' | 'Aperture' | 'Refine') => void;
+}
+
+export default function TaiwuHUD({ activeTab, setActiveTab }: TaiwuHUDProps) {
+  const { cultivator, fetchAperture } = useCultivatorStore();
+
+  useEffect(() => {
+    if (!cultivator) fetchAperture();
+  }, [cultivator, fetchAperture]);
+
+  const staminaPercent = cultivator 
+    ? Math.min(100, Math.max(0, (cultivator.primeval_essence / cultivator.max_essence) * 100))
+    : 0;
+
+  return (
+    <div className="absolute bottom-0 w-full flex items-end justify-center pointer-events-none pb-4 z-50">
+      
+      {/* HUD Container - Glassmorphism base */}
+      <div className="w-[95%] max-w-7xl h-28 glass-panel rounded-[2rem] flex items-center justify-between px-8 md:px-16 pointer-events-auto relative overflow-visible border-b-0 rounded-b-none bg-[#12100d]/90 backdrop-blur-md border border-[#2a2620]">
+        
+        {/* Subtle top glow line */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[80%] h-[1px] bg-gradient-to-r from-transparent via-[#8a8275] to-transparent opacity-50"></div>
+
+        {/* Left Side Portrait */}
+        <div className="absolute bottom-6 left-6 md:left-12 w-28 h-36 bg-gradient-to-t from-gray-900 to-[#12100d] border-2 border-[#c89b3c] border-opacity-30 rounded-t-[40%] flex flex-col items-center justify-end overflow-hidden z-10 shadow-[0_10px_30px_rgba(0,0,0,0.8)] transition-transform hover:scale-105 duration-500 cursor-pointer">
+          <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/black-scales.png')]"></div>
+          
+          {/* Aperture Status Pill */}
+          <div className="z-20 mb-1">
+            <span className={`text-[8px] font-sans font-bold px-1.5 py-0.5 rounded uppercase tracking-wider border ${
+              cultivator?.aperture_status === 'Fractured' 
+                ? 'bg-[#5c2424]/80 text-red-300 border-red-500 animate-pulse' 
+                : 'bg-[#3b4d3c]/80 text-emerald-200 border-[#3b4d3c]'
+            }`}>
+              {cultivator?.aperture_status === 'Fractured' ? '💀 Fractured' : '✨ Pristine'}
+            </span>
+          </div>
+
+          <div className="w-full text-center bg-black bg-opacity-80 backdrop-blur-sm text-[9px] py-1 text-[#d5cfc4] font-serif tracking-widest border-t border-[#c89b3c] border-opacity-30 z-20 uppercase">
+            {cultivator?.name || 'CULTIVATOR'} (R{cultivator?.rank || 1})
+          </div>
+        </div>
+
+        {/* Left Menus */}
+        <div className="flex gap-6 md:gap-10 ml-36 z-0">
+          <button 
+            onClick={() => setActiveTab('World')}
+            className={`group flex flex-col items-center transition-all duration-300 ${activeTab === 'World' ? 'text-[#d5cfc4] scale-110 drop-shadow-[0_0_10px_rgba(244,238,219,0.5)]' : 'text-[#8a8275] hover:text-[#d5cfc4]'}`}
+          >
+            <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-2 transition-all duration-300 ${activeTab === 'World' ? 'bg-[#3b4d3c] bg-opacity-20 border border-[#3b4d3c]' : 'bg-gray-800 bg-opacity-50 border border-transparent group-hover:border-gray-600'}`}>
+              <span className="text-xl">🏔️</span>
+            </div>
+            <span className="text-[10px] font-sans uppercase tracking-[0.2em] opacity-80 font-semibold">World</span>
+          </button>
+        </div>
+
+        {/* Central Action Dial (Primeval Essence) */}
+        <div className="absolute left-1/2 bottom-4 -translate-x-1/2 flex items-center justify-center z-20 animate-float">
+          {/* Outer glow ring */}
+          <div className="absolute inset-0 rounded-full animate-pulse-glow"></div>
+          
+          <div className="w-28 h-28 md:w-36 md:h-36 rounded-full border-[3px] border-[#3b4d3c] bg-[#12100d] shadow-2xl flex flex-col items-center justify-center relative overflow-hidden glass-panel">
+            {/* Liquid / Wave effect */}
+            <div 
+              className="absolute bottom-0 w-full bg-gradient-to-t from-[#3b4d3c] to-emerald-700 opacity-60 transition-all duration-1000 ease-in-out"
+              style={{ height: `${staminaPercent}%` }}
+            >
+              {/* Fake wave top */}
+              <div className="absolute top-0 left-0 w-[200%] h-4 bg-white opacity-20 -translate-y-1/2 rounded-[100%] animate-[spin_4s_linear_infinite]"></div>
+            </div>
+            
+            <span className="text-4xl md:text-5xl text-[#d5cfc4] font-serif font-bold drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] z-10">
+              {cultivator?.primeval_essence || 0}
+            </span>
+            <span className="text-[9px] text-[#8a8275] uppercase tracking-[0.3em] font-sans mt-1 z-10 drop-shadow-md">
+              Essence
+            </span>
+          </div>
+        </div>
+
+        {/* Right Menus */}
+        <div className="flex gap-6 md:gap-10 mr-4 z-0">
+          <button 
+            onClick={() => setActiveTab('Aperture')}
+            className={`group flex flex-col items-center transition-all duration-300 ${activeTab === 'Aperture' ? 'text-[#d5cfc4] scale-110 drop-shadow-[0_0_10px_rgba(244,238,219,0.5)]' : 'text-[#8a8275] hover:text-[#d5cfc4]'}`}
+          >
+            <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-2 transition-all duration-300 ${activeTab === 'Aperture' ? 'bg-[#3b4d3c] bg-opacity-20 border border-[#3b4d3c]' : 'bg-gray-800 bg-opacity-50 border border-transparent group-hover:border-gray-600'}`}>
+              <span className="text-xl">🎴</span>
+            </div>
+            <span className="text-[10px] font-sans uppercase tracking-[0.2em] opacity-80 font-semibold">Aperture</span>
+          </button>
+          
+          <button 
+            onClick={() => setActiveTab('Refine')}
+            className={`group flex flex-col items-center transition-all duration-300 ${activeTab === 'Refine' ? 'text-[#d5cfc4] scale-110 drop-shadow-[0_0_10px_rgba(158,42,43,0.8)]' : 'text-[#8a8275] hover:text-[#d5cfc4]'}`}
+          >
+            <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-2 transition-all duration-300 ${activeTab === 'Refine' ? 'bg-[#5c2424] bg-opacity-20 border border-[#5c2424]' : 'bg-gray-800 bg-opacity-50 border border-transparent group-hover:border-gray-600'}`}>
+              <span className="text-xl">🔥</span>
+            </div>
+            <span className="text-[10px] font-sans uppercase tracking-[0.2em] opacity-80 font-semibold">Refine</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+  );
+}

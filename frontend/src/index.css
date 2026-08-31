@@ -1,0 +1,82 @@
+@import "tailwindcss";
+
+@theme {
+  --color-parchment: #f4eedb;
+  --color-parchment-dark: #d8cfa3;
+  --color-ink: #0a0a0a;
+  --color-ink-light: #1a1a1a;
+  --color-jade: #2d8a60;
+  --color-jade-light: #4ade80;
+  --color-jade-glow: rgba(45, 138, 96, 0.4);
+  --color-crimson: #9e2a2b;
+  --color-crimson-glow: rgba(158, 42, 43, 0.4);
+  --color-gold: #d4af37;
+
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-serif: "Noto Serif SC", "Cinzel", serif;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-ink);
+    color: var(--color-parchment);
+    font-family: var(--font-serif);
+    /* Subtle radial gradient for depth */
+    background-image: radial-gradient(circle at center, #1a1f1d 0%, #0a0a0a 100%);
+    overflow: hidden;
+  }
+}
+
+/* Custom Scrollbar for a premium feel */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.3);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-jade);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-jade-light);
+}
+
+/* Animations */
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px var(--color-jade-glow); }
+  50% { box-shadow: 0 0 40px var(--color-jade-glow); }
+}
+.animate-pulse-glow {
+  animation: pulse-glow 3s infinite ease-in-out;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+.animate-float {
+  animation: float 4s infinite ease-in-out;
+}
+
+/* Glassmorphism utilities */
+.glass-panel {
+  background: rgba(20, 20, 20, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+}
+
+.glass-card {
+  background: linear-gradient(135deg, rgba(30,30,30,0.8) 0%, rgba(15,15,15,0.9) 100%);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(212, 175, 55, 0.15); /* Subtle gold border */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+.glass-card:hover {
+  border-color: var(--color-jade);
+  box-shadow: 0 8px 25px var(--color-jade-glow);
+  transform: translateY(-2px);
+}
