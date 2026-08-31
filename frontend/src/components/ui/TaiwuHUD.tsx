@@ -27,22 +27,24 @@ export default function TaiwuHUD({ activeTab, setActiveTab }: TaiwuHUDProps) {
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[80%] h-[1px] bg-gradient-to-r from-transparent via-[#8a8275] to-transparent opacity-50"></div>
 
         {/* Left Side Portrait */}
-        <div className="absolute bottom-6 left-6 md:left-12 w-28 h-36 bg-gradient-to-t from-gray-900 to-[#12100d] border-2 border-[#c89b3c] border-opacity-30 rounded-t-[40%] flex flex-col items-center justify-end overflow-hidden z-10 shadow-[0_10px_30px_rgba(0,0,0,0.8)] transition-transform hover:scale-105 duration-500 cursor-pointer">
-          <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/black-scales.png')]"></div>
-          
-          {/* Aperture Status Pill */}
-          <div className="z-20 mb-1">
-            <span className={`text-[8px] font-sans font-bold px-1.5 py-0.5 rounded uppercase tracking-wider border ${
+        <div className="absolute bottom-6 left-6 md:left-12 flex flex-col items-center z-20">
+          {/* Aperture Status Pill positioned cleanly above the portrait */}
+          <div className="mb-1.5 z-30">
+            <span className={`text-[8px] font-sans font-bold px-2 py-0.5 rounded-full uppercase tracking-wider border shadow-md ${
               cultivator?.aperture_status === 'Fractured' 
-                ? 'bg-[#5c2424]/80 text-red-300 border-red-500 animate-pulse' 
-                : 'bg-[#3b4d3c]/80 text-emerald-200 border-[#3b4d3c]'
+                ? 'bg-[#5c2424] text-red-200 border-red-500 animate-pulse shadow-[0_0_10px_rgba(220,38,38,0.5)]' 
+                : 'bg-[#1e3a2b] text-emerald-300 border-[#3b4d3c] shadow-[0_0_8px_rgba(59,77,60,0.4)]'
             }`}>
               {cultivator?.aperture_status === 'Fractured' ? '💀 Fractured' : '✨ Pristine'}
             </span>
           </div>
 
-          <div className="w-full text-center bg-black bg-opacity-80 backdrop-blur-sm text-[9px] py-1 text-[#d5cfc4] font-serif tracking-widest border-t border-[#c89b3c] border-opacity-30 z-20 uppercase">
-            {cultivator?.name || 'CULTIVATOR'} (R{cultivator?.rank || 1})
+          <div className="w-28 h-32 bg-gradient-to-t from-gray-900 to-[#12100d] border-2 border-[#c89b3c] border-opacity-30 rounded-t-[40%] flex flex-col items-center justify-end overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.8)] transition-transform hover:scale-105 duration-500 cursor-pointer">
+            <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/black-scales.png')]"></div>
+            
+            <div className="w-full text-center bg-black/90 backdrop-blur-sm text-[9px] py-1 text-[#d5cfc4] font-serif tracking-widest border-t border-[#c89b3c]/30 z-20 uppercase font-bold">
+              {cultivator?.name || 'CULTIVATOR'} (R{cultivator?.rank || 1})
+            </div>
           </div>
         </div>
 

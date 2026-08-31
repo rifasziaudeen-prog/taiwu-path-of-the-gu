@@ -152,6 +152,8 @@ export const useCultivatorStore = create<CultivatorState>((set, get) => ({
       if (data.cultivator) {
         set({ cultivator: data.cultivator });
       }
+      // Re-fetch entire aperture and stats
+      await get().fetchAperture();
       set({ isLoading: false });
       return data;
     } catch (err: any) {

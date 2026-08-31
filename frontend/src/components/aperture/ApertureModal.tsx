@@ -43,8 +43,12 @@ export default function ApertureModal() {
     setAscendMsg(null);
     try {
       const res = await ascend();
+      await fetchAperture();
       if (res.success && res.wall_broken) {
-        setAscendMsg({ text: res.message, success: true });
+        setAscendMsg({ 
+          text: res.message || `🎉 BREAKTHROUGH ACHIEVED! Advanced to Rank ${cultivator ? cultivator.rank + 1 : 2} Initial Stage!`, 
+          success: true 
+        });
       } else if (res.fractured) {
         setAscendMsg({ 
           text: res.message, 
@@ -193,19 +197,17 @@ export default function ApertureModal() {
               <button
                 onClick={handleAscend}
                 disabled={!canAffordAscension || isAscending}
-                className={`py-3.5 px-8 rounded-xl font-sans text-xs font-bold uppercase tracking-[0.2em] transition-all duration-300 shadow-xl border
+                className={`py-4 px-8 rounded-2xl font-sans text-xs font-bold uppercase tracking-[0.2em] transition-all duration-300 shadow-2xl border
                   ${canAffordAscension && !isAscending
-                    ? 'bg-gradient-to-r from-[#c89b3c] to-[#8B6914] text-[#12100d] hover:brightness-110 hover:shadow-[0_0_25px_rgba(200,155,60,0.6)] border-[#c89b3c] cursor-pointer'
+                    ? 'bg-gradient-to-r from-red-600 via-rose-700 to-red-900 text-white hover:brightness-125 hover:shadow-[0_0_35px_rgba(225,29,72,0.7)] border-red-500 cursor-pointer animate-pulse'
                     : 'bg-[#1a1814] text-zinc-600 border-[#2a2620] cursor-not-allowed opacity-60'}
                 `}
               >
-                {isAscending ? 'Battering Wall...' : '⚡ Shatter Aperture Wall'}
+                {isAscending ? '💥 Battering Crystal Wall...' : '⚡ SHATTER APERTURE WALL'}
               </button>
-              {!canAffordAscension && (
-                <span className="text-[10px] text-[#5c2424] font-sans mt-1.5 text-center">
-                  Requires at least {requiredEssence}% Primeval Essence
-                </span>
-              )}
+              <span className={`text-[11px] font-sans mt-2 text-center font-semibold ${canAffordAscension ? 'text-red-400' : 'text-[#5c2424]'}`}>
+                {canAffordAscension ? '🔥 Consumes 90% Primeval Essence' : `⚠️ Requires at least ${requiredEssence}% Primeval Essence`}
+              </span>
             </div>
           </div>
 
