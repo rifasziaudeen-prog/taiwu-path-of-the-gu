@@ -12,6 +12,7 @@ export interface GuWorm {
   tier: number;
   path: string;
   gu_type: GuType;
+  satiety?: number;
   hunger: number;
   food: string;
   effect_desc: string;
@@ -131,6 +132,19 @@ export interface UnequipGuResponse {
   success: boolean;
   message: string;
   gu?: GuWorm;
+  equipped_gu: GuWorm[];
+  vault_gu: GuWorm[];
+  vault_capacity: number;
+  max_active_slots: number;
+  equipped_active_count: number;
+  cultivator: CultivatorStats;
+}
+
+export interface FeedVaultGuResponse {
+  success: boolean;
+  message: string;
+  gu: GuWorm;
+  cost: number;
   equipped_gu: GuWorm[];
   vault_gu: GuWorm[];
   vault_capacity: number;

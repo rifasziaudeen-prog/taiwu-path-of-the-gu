@@ -36,6 +36,7 @@ class CultivatorState:
                 "tier": 1,
                 "path": "Moon Path",
                 "gu_type": "active",
+                "satiety": 90,
                 "hunger": 90,
                 "food": "Moon Orchid Petals",
                 "effect_desc": "Expels a curved moonblade from the palm (Deals 35 Moon damage). Costs 10% Essence.",
@@ -49,6 +50,7 @@ class CultivatorState:
                 "tier": 1,
                 "path": "Strength Path",
                 "gu_type": "passive_body",
+                "satiety": 85,
                 "hunger": 85,
                 "food": "Boar Meat",
                 "effect_desc": "Nourishes the body with the strength of one boar (+15 Strength). Passive while fed.",
@@ -66,6 +68,7 @@ class CultivatorState:
                 "tier": 1,
                 "path": "Transformation Path",
                 "gu_type": "passive_body",
+                "satiety": 70,
                 "hunger": 70,
                 "food": "Jade Stone Fragments",
                 "effect_desc": "Tempers skin into lustrous jade (+20 Defense). Passive while fed.",
@@ -83,6 +86,7 @@ class CultivatorState:
                 "tier": 1,
                 "path": "Support Path",
                 "gu_type": "passive_body",
+                "satiety": 95,
                 "hunger": 95,
                 "food": "Fine Wine",
                 "effect_desc": "Refines and purifies primeval essence by a minor realm (+10 Max Essence).",
@@ -100,7 +104,8 @@ class CultivatorState:
                 "tier": 2,
                 "path": "Blood Path",
                 "gu_type": "active",
-                "hunger": 15,  # Starving!
+                "satiety": 15,  # Starving!
+                "hunger": 15,
                 "food": "Fresh Warm Blood",
                 "effect_desc": "Ignites blood sea to unleash terrifying devastation (Deals 80 Blood damage). Costs 25% Essence.",
                 "passive_buff": None,
@@ -117,6 +122,7 @@ class CultivatorState:
                 "tier": 1,
                 "path": "Light Path",
                 "gu_type": "active",
+                "satiety": 60,
                 "hunger": 60,
                 "food": "White Radiance Petals",
                 "effect_desc": "Emits flashes of blinding light to disorient enemies (Deals 25 Light damage). Costs 8% Essence.",
@@ -130,6 +136,7 @@ class CultivatorState:
                 "tier": 1,
                 "path": "Strength Path",
                 "gu_type": "passive_body",
+                "satiety": 80,
                 "hunger": 80,
                 "food": "Bear Honey",
                 "effect_desc": "Infuses mortal sinews with the immense power of a black bear (+20 Strength). Passive while fed.",
@@ -437,6 +444,102 @@ class CultivatorState:
             "cultivator": self.get_stats()
         }
 
+    def calculate_feed_cost(self, tier: int) -> int:
+        """
+        Calculates Primeval Stone feeding cost based on Gu Rank/Tier:
+        Tier 1 = 10 stones, Tier 2 = 50 stones, Tier 3 = 150 stones, Tier 4 = 400 stones, Tier 5 = 1000 stones.
+        """
+        FEED_COSTS = {1: 10, 2: 50, 3: 150, 4: 400, 5: 1000}
+        return FEED_COSTS.get(tier, max(10, tier * 25))
+
+    def feed_gu(self, gu_id: str) -> Dict[str, Any]:
+        """
+        Feeds a Gu worm in either Aperture or Vault, restoring Satiety/Hunger to 100%.
+        Consumes fixed Primeval Stones based on Rank/Tier.
+        """
+        gu = next((g for g in self.aperture if g["id"] == gu_id), None)
+        if not gu:
+            gu = next((g for g in self.vault if g["id"] == gu_id), None)
+
+        if not gu:
+            return {
+                "success": False,
+                "message": "Gu worm not found in Aperture or Vault storage."
+            }
+
+        tier = gu.get("tier", 1)
+        cost = self.calculate_feed_cost(tier)
+
+        if self.spirit_stones < cost:
+            return {
+                "success": False,
+                "message": f"Insufficient Primeval Stones! Feeding {gu['name']} (Tier {tier}) requires {cost} Primeval Stones. You only have {self.spirit_stones}.",
+                "cost": cost,
+                "equipped_gu": self.aperture,
+                "vault_gu": self.vault,
+                "cultivator": self.get_stats()
+            }
+
+        # Deduct stones and sate the Gu
+        self.spirit_stones -= cost
+        gu["satiety"] = 100
+        gu["hunger"] = 100
+
+        return {
+            "success": True,
+            "message": f"🌿 Fed {gu['name']}! Restored Satiety to 100% (Consumed {cost} Primeval Stones).",
+            "gu": gu,
+            "cost": cost,
+            "equipped_gu": self.aperture,
+            "vault_gu": self.vault,
+            "vault_capacity": self.get_vault_capacity(),
+            "max_active_slots": 3,
+            "equipped_active_count": self.get_equipped_active_count(),
+            "cultivator": self.get_stats()
+        }
+
+    def decay_gu_satiety(self, amount: int = 5) -> List[str]:
+        """
+        Deducts satiety (and hunger) from ALL Gu worms (both active in aperture and stored in vault).
+        If any Gu worm's satiety reaches <= 0, it permanently dies of starvation and is deleted.
+        Returns a list of starvation death alerts.
+        """
+        death_alerts: List[str] = []
+
+        # Decay equipped Gu
+        dead_equipped: List[Dict[str, Any]] = []
+        for gu in self.aperture:
+            cur = gu.get("satiety", gu.get("hunger", 100))
+            new_val = max(0, cur - amount)
+            gu["satiety"] = new_val
+            gu["hunger"] = new_val
+            if new_val <= 0:
+                dead_equipped.append(gu)
+                death_alerts.append(
+                    f"💀 STARVATION DEATH! Your equipped Gu '{gu['name']}' (Tier {gu.get('tier', 1)}) ran out of essence nourishment and crumbled to dust!"
+                )
+
+        for dead in dead_equipped:
+            self.aperture.remove(dead)
+
+        # Decay vaulted Gu
+        dead_vault: List[Dict[str, Any]] = []
+        for gu in self.vault:
+            cur = gu.get("satiety", gu.get("hunger", 100))
+            new_val = max(0, cur - amount)
+            gu["satiety"] = new_val
+            gu["hunger"] = new_val
+            if new_val <= 0:
+                dead_vault.append(gu)
+                death_alerts.append(
+                    f"💀 STARVATION DEATH! Your stored Gu '{gu['name']}' (Tier {gu.get('tier', 1)}) starved in the vault and perished into ash!"
+                )
+
+        for dead in dead_vault:
+            self.vault.remove(dead)
+
+        return death_alerts
+
     def get_vault_data(self) -> Dict[str, Any]:
         """
         Returns full vault and aperture equipment inventory state.
@@ -453,3 +556,4 @@ class CultivatorState:
 
 # Global in-memory singleton for the prototype session
 player_cultivator = CultivatorState()
+

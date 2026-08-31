@@ -152,8 +152,9 @@ async def move_player(
     if encounter and encounter.get("type") == "resource":
         amt = encounter.get("amount", 10)
         player_cultivator.spirit_stones += amt
-        reward_msg = f" (+{amt} Primeval Stones)"
-        
+    # Hunger Attrition: Every movement on overworld grid deducts 5 satiety from all Gu (active & vaulted)
+    starvation_alerts = player_cultivator.decay_gu_satiety(5)
+
     cultivator_stats = player_cultivator.get_stats()
     
     return {
@@ -169,5 +170,68 @@ async def move_player(
         "event": encounter,
         "tiles": tiles,
         "grid": tiles,
+        "starvation_alerts": starvation_alerts,
         "cultivator": cultivator_stats
+    }
+
+@router.post("/combat/action")
+async def combat_action(payload: Dict[str, Any]):
+    """
+    Executes a combat turn and resolves actions.
+    When combat concludes (victory, defeat, or fled), deducts 5 satiety from all Gu.
+    """
+    action_type = payload.get("action_type", "strike")
+    gu_id = payload.get("gu_id")
+    enemy_hp = payload.get("enemy_hp", 50)
+    enemy_atk = payload.get("enemy_atk", 15)
+    reward_stones = payload.get("reward_stones", 15)
+    player_hp = payload.get("player_hp", 100)
+
+    cultivator_stats = player_cultivator.get_stats()
+    
+    dmg_dealt = 0
+    if action_type == "strike":
+        dmg_dealt = max(5, cultivator_stats["stats"]["strength"]["total"])
+    elif action_type == "gu" and gu_id:
+        gu = next((g for g in player_cultivator.aperture if g["id"] == gu_id), None)
+        if gu:
+            dmg_dealt = gu.get("active_power", 35)
+            cost = gu.get("essence_cost", 10)
+            player_cultivator.primeval_essence = max(0, player_cultivator.primeval_essence - cost)
+        else:
+            dmg_dealt = 20
+
+    rem_enemy_hp = max(0, enemy_hp - dmg_dealt)
+    dmg_taken = max(1, enemy_atk - (cultivator_stats["stats"]["defense"]["total"] // 2)) if rem_enemy_hp > 0 and action_type != "flee" else 0
+    rem_player_hp = max(0, player_hp - dmg_taken)
+
+    is_victory = rem_enemy_hp <= 0
+    is_defeat = rem_player_hp <= 0
+    fled = action_type == "flee"
+
+    starvation_alerts = []
+    # If combat concludes, apply hunger attrition (deduct 5 satiety from all Gu)
+    if is_victory or is_defeat or fled:
+        starvation_alerts = player_cultivator.decay_gu_satiety(5)
+
+    if is_victory:
+        player_cultivator.spirit_stones += reward_stones
+
+    return {
+        "success": True,
+        "action_type": action_type,
+        "damage_dealt": dmg_dealt,
+        "damage_taken": dmg_taken,
+        "enemy_hp": rem_enemy_hp,
+        "player_hp": rem_player_hp,
+        "is_victory": is_victory,
+        "is_defeat": is_defeat,
+        "fled": fled,
+        "starvation_alerts": starvation_alerts,
+        "logs": [
+            f"Dealt {dmg_dealt} damage with {action_type}." if action_type != "flee" else "Attempting to escape...",
+            f"Enemy retaliated for {dmg_taken} damage!" if dmg_taken > 0 else ""
+        ],
+        "loot": {"stones": reward_stones} if is_victory else None,
+        "cultivator": player_cultivator.get_stats()
     }

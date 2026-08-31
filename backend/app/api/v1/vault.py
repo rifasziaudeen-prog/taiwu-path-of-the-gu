@@ -42,3 +42,19 @@ async def unequip_gu(payload: Dict[str, Any]):
         raise HTTPException(status_code=400, detail=result.get("message", "Failed to unequip Gu."))
         
     return result
+
+@router.post("/feed")
+async def feed_gu(payload: Dict[str, Any]):
+    """
+    Feeds a Gu worm in the Aperture or Vault, restoring Satiety to 100%.
+    Consumes fixed Primeval Stones based on Rank/Tier (Rank 1 = 10, Rank 2 = 50, etc.).
+    """
+    gu_id = payload.get("gu_id")
+    if not gu_id:
+        raise HTTPException(status_code=400, detail="Must provide 'gu_id' to feed.")
+        
+    result = player_cultivator.feed_gu(gu_id)
+    if not result.get("success"):
+        raise HTTPException(status_code=400, detail=result.get("message", "Failed to feed Gu."))
+        
+    return result

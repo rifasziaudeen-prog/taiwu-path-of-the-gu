@@ -17,6 +17,8 @@ interface VaultState {
   fetchVault: () => Promise<void>;
   equipGu: (guId: string) => Promise<EquipGuResponse>;
   unequipGu: (guId: string) => Promise<UnequipGuResponse>;
+  feedGu: (guId: string) => Promise<any>;
+  calculateFeedCost: (tier: number) => number;
   clearFeedback: () => void;
 }
 
@@ -29,6 +31,11 @@ export const useVaultStore = create<VaultState>((set) => ({
   isLoading: false,
   error: null,
   feedbackMessage: null,
+
+  calculateFeedCost: (tier: number) => {
+    const costs: Record<number, number> = { 1: 10, 2: 50, 3: 150, 4: 400, 5: 1000 };
+    return costs[tier] || Math.max(10, tier * 25);
+  },
 
   fetchVault: async () => {
     set({ isLoading: true, error: null });
@@ -131,6 +138,46 @@ export const useVaultStore = create<VaultState>((set) => ({
       return data;
     } catch (err: any) {
       const msg = err.message || 'Error unequipping Gu';
+      set({ error: msg, feedbackMessage: { text: msg, type: 'error' }, isLoading: false });
+      throw err;
+    }
+  },
+
+  feedGu: async (guId: string) => {
+    set({ isLoading: true, error: null, feedbackMessage: null });
+    try {
+      const response = await fetch(`${API_BASE}/feed`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ gu_id: guId })
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || (data as any).detail || 'Failed to feed Gu');
+      }
+
+      set({
+        equippedGu: data.equipped_gu,
+        vaultGu: data.vault_gu,
+        vaultCapacity: data.vault_capacity,
+        maxActiveSlots: data.max_active_slots,
+        equippedActiveCount: data.equipped_active_count,
+        feedbackMessage: { text: data.message, type: 'success' },
+        isLoading: false
+      });
+
+      // Synchronize core cultivator store
+      if (data.cultivator) {
+        useCultivatorStore.setState({
+          cultivator: data.cultivator,
+          guWorms: data.equipped_gu
+        });
+      }
+
+      return data;
+    } catch (err: any) {
+      const msg = err.message || 'Error feeding Gu';
       set({ error: msg, feedbackMessage: { text: msg, type: 'error' }, isLoading: false });
       throw err;
     }

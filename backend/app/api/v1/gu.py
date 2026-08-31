@@ -20,21 +20,17 @@ async def get_aperture():
 @router.post("/feed")
 async def feed_gu(payload: Dict[str, Any]):
     """
-    Feeds a Gu worm with spirit stones / food to restore its hunger.
+    Feeds a Gu worm with spirit stones / food to restore its hunger/satiety.
     """
     gu_id = payload.get("gu_id")
-    for gu in player_cultivator.aperture:
-        if gu["id"] == gu_id:
-            gu["hunger"] = 100
-            updated_stats = player_cultivator.get_stats()
-            return {
-                "success": True, 
-                "message": f"Fed {gu['name']}. Its hunger is restored to 100%.", 
-                "gu": gu,
-                "cultivator": updated_stats
-            }
-            
-    raise HTTPException(status_code=404, detail="Gu not found in aperture")
+    if not gu_id:
+        raise HTTPException(status_code=400, detail="Must provide 'gu_id' to feed.")
+        
+    result = player_cultivator.feed_gu(gu_id)
+    if not result.get("success"):
+        raise HTTPException(status_code=400, detail=result.get("message", "Failed to feed Gu."))
+        
+    return result
 
 @router.post("/refine")
 async def refine_gu(payload: Dict[str, Any]):
