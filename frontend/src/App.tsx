@@ -25,6 +25,9 @@ function App() {
     setActiveNodeData(null);
   };
 
+  // Global Modal & Overlay Supremacy: HUD only renders during raw overworld exploration
+  const isOverlayActive = activeTab !== 'World' || isCombatActive;
+
   return (
     <div className="min-h-screen bg-ink relative overflow-hidden">
 
@@ -43,10 +46,14 @@ function App() {
       </div>
 
       {/* Aperture Modal */}
-      {activeTab === 'Aperture' && <ApertureModal />}
+      {activeTab === 'Aperture' && (
+        <ApertureModal onClose={() => setActiveTab('World')} />
+      )}
 
       {/* Refine Modal */}
-      {activeTab === 'Refine' && <CrucibleModal />}
+      {activeTab === 'Refine' && (
+        <CrucibleModal onClose={() => setActiveTab('World')} />
+      )}
 
       {/* Closed Door Cultivation: Ascension Chamber */}
       {activeTab === 'Ascend' && (
@@ -56,8 +63,8 @@ function App() {
         />
       )}
 
-      {/* Persistent Taiwu HUD — hidden during active combat to avoid UI collision */}
-      {!isCombatActive && (
+      {/* Persistent Taiwu HUD — strictly rendered only during Overworld exploration */}
+      {!isOverlayActive && (
         <TaiwuHUD
           activeTab={activeTab}
           setActiveTab={setActiveTab}

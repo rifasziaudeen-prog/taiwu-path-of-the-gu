@@ -2,7 +2,11 @@ import { useEffect, useState } from 'react';
 import { useCultivatorStore } from '../../hooks/useCultivator';
 import GuVault from './GuVault';
 
-export default function ApertureModal() {
+interface ApertureModalProps {
+  onClose?: () => void;
+}
+
+export default function ApertureModal({ onClose }: ApertureModalProps) {
   const { cultivator, guWorms, isLoading, fetchAperture, feedGu } = useCultivatorStore();
   const [subTab, setSubTab] = useState<'vault' | 'overview'>('vault');
 
@@ -15,7 +19,7 @@ export default function ApertureModal() {
 
   if (isLoading && !cultivator) {
     return (
-      <div className="absolute inset-0 flex items-center justify-center text-[#d5cfc4] animate-pulse z-40 bg-[#12100d] bg-opacity-90 backdrop-blur-md font-serif">
+      <div className="fixed inset-0 w-screen h-screen flex items-center justify-center text-[#d5cfc4] animate-pulse z-50 bg-[#12100d] bg-opacity-95 backdrop-blur-md font-serif">
         Expanding Consciousness into Primeval Aperture...
       </div>
     );
@@ -24,8 +28,20 @@ export default function ApertureModal() {
   const isFractured = cultivator?.aperture_status === 'Fractured';
 
   return (
-    <div className="absolute inset-0 bg-[#12100d]/90 backdrop-blur-2xl z-40 pt-12 pb-64 px-8 overflow-y-auto font-serif flex flex-col items-center select-none">
+    <div className="fixed inset-0 w-screen h-screen bg-[#12100d]/95 backdrop-blur-2xl z-50 pt-8 pb-16 px-4 md:px-8 overflow-y-auto font-serif flex flex-col items-center select-none">
       
+      {/* Top Exit Button */}
+      {onClose && (
+        <div className="w-full max-w-6xl flex justify-end mb-2">
+          <button
+            onClick={onClose}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-black/60 border border-[#2a2620] hover:border-[#c89b3c]/50 text-[#8a8275] hover:text-[#d5cfc4] text-xs font-sans uppercase tracking-widest transition-all cursor-pointer shadow-lg"
+          >
+            ✕ Return to Overworld
+          </button>
+        </div>
+      )}
+
       {/* Header & Cultivator Physique Summary */}
       <div className="w-full max-w-5xl mb-6 text-center relative animate-fade-in">
         <h1 className="text-4xl md:text-5xl text-[#3b4d3c] mb-2 tracking-[0.15em] font-light drop-shadow-[0_0_20px_rgba(59,77,60,0.6)]">

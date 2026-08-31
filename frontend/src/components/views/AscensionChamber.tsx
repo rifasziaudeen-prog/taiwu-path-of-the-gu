@@ -75,19 +75,19 @@ export default function AscensionChamber({ onClose, onAscendSuccess }: Ascension
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#0a0907]/95 backdrop-blur-2xl flex items-center justify-center p-4 md:p-8 font-serif select-none animate-fade-in overflow-y-auto">
+    <div className="fixed inset-0 w-screen h-screen z-50 bg-[#0a0907]/95 backdrop-blur-2xl flex items-center justify-center p-4 md:p-8 font-serif select-none animate-fade-in overflow-y-auto">
       
       {/* Background Ink & Aura Decor */}
       <div className="absolute inset-0 pointer-events-none opacity-20 bg-[radial-gradient(circle_at_center,rgba(200,155,60,0.25)_0%,transparent_70%)]" />
       <div className="absolute inset-0 pointer-events-none opacity-10 bg-[url('https://www.transparenttextures.com/patterns/black-scales.png')]" />
 
       {/* Main Chamber Card */}
-      <div className="relative w-full max-w-4xl bg-[#12100d] border-2 border-[#c89b3c]/50 rounded-3xl p-6 md:p-10 shadow-[0_0_60px_rgba(0,0,0,0.9)] flex flex-col items-center text-center z-10 my-auto">
+      <div className="relative w-full max-w-4xl max-h-[92vh] overflow-y-auto bg-[#12100d] border-2 border-[#c89b3c]/50 rounded-3xl p-6 md:p-10 shadow-[0_0_60px_rgba(0,0,0,0.9)] flex flex-col items-center text-center z-10 my-auto">
         
         {/* Top Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 text-gray-500 hover:text-[#d5cfc4] p-2 rounded-full border border-transparent hover:border-[#2a2620] transition-all cursor-pointer font-sans text-xs uppercase tracking-widest"
+          className="absolute top-5 right-5 text-gray-500 hover:text-[#d5cfc4] px-3 py-1.5 rounded-xl border border-transparent hover:border-[#2a2620] transition-all cursor-pointer font-sans text-xs uppercase tracking-widest bg-black/40"
         >
           ✕ Exit Chamber
         </button>

@@ -2,7 +2,11 @@ import { useState } from 'react';
 import { useCultivatorStore } from '../../hooks/useCultivator';
 import type { GuWorm } from '../../types/api';
 
-export default function CrucibleModal() {
+interface CrucibleModalProps {
+  onClose?: () => void;
+}
+
+export default function CrucibleModal({ onClose }: CrucibleModalProps) {
   const { guWorms, cultivator, refineGu } = useCultivatorStore();
   
   const [slotA, setSlotA] = useState<GuWorm | null>(null);
@@ -47,11 +51,23 @@ export default function CrucibleModal() {
   };
 
   return (
-    <div className="absolute inset-0 flex flex-col items-center justify-start pt-24 pb-36 px-4 pointer-events-auto z-40 overflow-y-auto">
+    <div className="fixed inset-0 w-screen h-screen bg-[#12100d]/95 backdrop-blur-2xl flex flex-col items-center justify-start pt-8 pb-16 px-4 pointer-events-auto z-50 overflow-y-auto select-none">
       
+      {/* Top Exit Button */}
+      {onClose && (
+        <div className="w-full max-w-5xl flex justify-end mb-2">
+          <button
+            onClick={onClose}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-black/60 border border-[#2a2620] hover:border-[#c89b3c]/50 text-[#8a8275] hover:text-[#d5cfc4] text-xs font-sans uppercase tracking-widest transition-all cursor-pointer shadow-lg"
+          >
+            ✕ Return to Overworld
+          </button>
+        </div>
+      )}
+
       {/* Title Header */}
       <div className="mb-6 text-center animate-fade-in">
-        <h2 className="text-3xl font-serif text-[#d5cfc4] drop-shadow-[0_2px_10px_rgba(200,155,60,0.5)]">Heavenly Refinement Crucible</h2>
+        <h2 className="text-3xl md:text-4xl font-serif text-[#d5cfc4] drop-shadow-[0_2px_10px_rgba(200,155,60,0.5)]">Heavenly Refinement Crucible</h2>
         <p className="text-[#8a8275] text-xs uppercase tracking-[0.3em] mt-2">Combine Gu to transcend mortal limits</p>
       </div>
 
